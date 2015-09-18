@@ -1,7 +1,7 @@
-import re
 import sys
 from urllib.parse import unquote
 import json
+import imgur
 
 __author__ = 'rbonick'
 
@@ -40,11 +40,20 @@ class Crawler:
 if __name__ == "__main__":
     try:
         url = sys.argv[1]
+        album_name = None
+        if len(sys.argv[2:]) > 0:
+            album_name = " ".join(sys.argv[2:])
     except IndexError:
         print("Please use this program in the format: "
-              "'python crawler.py <collection slideshow url>'")
+              "'python crawler.py <collection slideshow url> <album name>'")
         url = None
+        album_name = None
     if url:
         results = Crawler.crawl(url)
-        for img_url in results:
-            print(img_url)
+
+        client = imgur.authenticate()
+        if client:
+            imgur.check_rate_limit(client)
+            print(imgur.create_album(client, album_name, results))
+        else:
+            print("Could not create Imgur client, check credentials")
